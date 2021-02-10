@@ -40,3 +40,6 @@ Route::prefix('free-zone')
 });
 
 
+Route::resource('posts', 'PostsController');
+
+Route::resource('tags', 'TagsController');
