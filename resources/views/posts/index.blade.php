@@ -38,6 +38,7 @@
             <td>{{ $post->title }}</td>
             <td>{{ $post->category->title }}</td>
             <td>{{ $post->postInfo->description }}</td>
+            <td><img src="{{ asset($post->image_url) }}"></td>
             <td>
                 <ol>
                     @foreach($post->tags as $tag)

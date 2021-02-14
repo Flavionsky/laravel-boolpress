@@ -11,8 +11,7 @@ class Post extends Model
     protected $fillable =[
         
         'title',
-        'author',
-        'category_id'
+        'backdate'
 
     ];
 

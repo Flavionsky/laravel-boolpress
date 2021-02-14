@@ -5,6 +5,7 @@
 <ul>
     <li><h4>Category:</h4> {{ $post->category->title }}</li>
     <li><h4>Description:</h4> {{ $post->postInfo->description }}</li>
+    <li><img src="{{asset($post->image_url)}}"></li>
 </ul>
 <h1>Post Tags</h1>
 <ul>

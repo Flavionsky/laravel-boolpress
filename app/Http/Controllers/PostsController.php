@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
+use App\Http\Requests\PostRequest;
+
 use App\Post;
 
 use App\Category;
@@ -24,10 +26,10 @@ class PostsController extends Controller
      * @return \Illuminate\Http\Response
      */
 
-    public function __construct(){
+    public function __construct()
+    {
 
         $this->middleware('auth')->except('index', 'show');
-
     }
 
     public function index()
@@ -36,7 +38,7 @@ class PostsController extends Controller
         $userLogged = Auth::user();
 
 
-        return view('posts.index', compact('posts','userLogged'));
+        return view('posts.index', compact('posts', 'userLogged'));
     }
 
     /**
@@ -47,9 +49,8 @@ class PostsController extends Controller
     public function create()
     {
         $tags = Tag::all();
-        $categories = Category::all();
 
-        return view('posts.create', compact('categories', 'tags'));
+        return view('posts.create', compact('tags'));
     }
 
     /**
@@ -58,27 +59,52 @@ class PostsController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(PostRequest $request)
     {
-        $data = $request->all();
+        //validation
+        $data = $request->validated();
 
+        //new instance
         $newPost = new Post;
 
-        $newPost->title = $data['title'];
-        $newPost->author = $data['author'];
-        $newPost->category_id = $data['category_id'];
+        //inserts fillables and filters the other fields
+        $newPost->fill($data);
 
+
+        $newPost->category()->associate(
+            Category::firstOrCreate(
+                ['title' => $data['category']],
+                ['slug' => Str::slug($data['category'], '-')]
+            )
+        );
+
+        $newPost->user()->associate(Auth::user());
+
+        if ($request->file('image') != null) {
+
+            $newPost->image_url = $request->file('image')->storePublicly('images');
+        }
+        
         $newPost->save();
-
-        $newPostInfo = new PostInformation;
+        
+        $newPostInfo = new PostInformation();
         $newPostInfo->post_id = $newPost->id;
-
         $newPostInfo->slug = Str::slug($newPost->title);
         $newPostInfo->description = $data['description'];
 
         $newPostInfo->save();
+        
+        //creates tags from the tags string
+        
+        $tagsIDs = array_map(function($el){
+            $tag = Tag::firstOrCreate(
+                ['name' => $el ],
+            );
+            return $tag->id;
+        }, explode(' ', $data['tags']));
 
-        $newPost->tags()->attach($data['tags']);
+        //associa i tag al post
+        $newPost->tags()->attach($tagsIDs);
 
         return redirect()->route('posts.index');
     }
@@ -110,10 +136,10 @@ class PostsController extends Controller
             'post' => $post
         ];
 
-        if ($userLogged->id == $post->user->id){
+        if ($userLogged->id == $post->user->id) {
 
             return view('posts.edit', $data);
-        }else {
+        } else {
             return redirect()->route('posts.index');
         }
     }
@@ -156,7 +182,6 @@ class PostsController extends Controller
         foreach ($post->tags as $tag) {
 
             $post->tags()->detach($tag->id);
-
         }
 
         $post->delete();

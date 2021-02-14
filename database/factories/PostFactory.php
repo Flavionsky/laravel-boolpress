@@ -10,7 +10,9 @@ $factory->define(Post::class, function (Faker $faker) {
         
         'category_id'=>$faker->numberBetween(1, 100),
         'user_id'=> $faker->numberBetween(1, 40),
-        'title'=>$faker->sentence()
+        'title'=>$faker->sentence(),
+        'backdate'=>$faker->date('Y-m-d','now'),
+        'image_url' => $faker->imageUrl(640,480),
 
     ];
 });
