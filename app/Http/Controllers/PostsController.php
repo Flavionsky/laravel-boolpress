@@ -128,22 +128,17 @@ class PostsController extends Controller
      */
     public function edit(Post $post)
     {
-        $userLogged = Auth::user();
-
+        
         $data = [
             'categories' => Category::all(),
             'tags' => Tag::all(),
             'post' => $post
         ];
-
-        if ($userLogged->id == $post->user->id) {
-
-            return view('posts.edit', $data);
-        } else {
-            return redirect()->route('posts.index');
-        }
+        
+        return view('posts.edit', $data);
+        
     }
-
+    
     /**
      * Update the specified resource in storage.
      *
@@ -153,12 +148,12 @@ class PostsController extends Controller
      */
     public function update(Request $request, Post $post)
     {
+        $userLogged = Auth::user();
 
         $data = $request->all();
 
         $post->update([
             'title' => $data['title'],
-            'author' => $data['author'],
             'category_id' => $data['category_id']
         ]);
 
@@ -166,7 +161,17 @@ class PostsController extends Controller
 
         $post->tags()->sync($data['tags']);
 
-        return redirect()->route('posts.index');
+        if ($userLogged->id == $post->user->id) {
+
+            return redirect()->route('posts.index');
+
+        } else {
+            $errormessage = "L'Utente non è abilitato a modificare questo post!";
+
+            return view('error', compact('errormessage'));
+        
+        }
+
     }
 
     /**
