@@ -150,21 +150,22 @@ class PostsController extends Controller
     {
         $userLogged = Auth::user();
 
-        $data = $request->all();
-
-        $post->update([
-            'title' => $data['title'],
-            'category_id' => $data['category_id']
-        ]);
-
-        $post->postInfo()->update(['description' => $data['description']]);
-
-        $post->tags()->sync($data['tags']);
-
         if ($userLogged->id == $post->user->id) {
 
-            return redirect()->route('posts.index');
 
+            $data = $request->all();
+    
+            $post->update([
+                'title' => $data['title'],
+                'category_id' => $data['category_id']
+            ]);
+    
+            $post->postInfo()->update(['description' => $data['description']]);
+    
+            $post->tags()->sync($data['tags']);
+            
+            return redirect()->route('posts.index');
+            
         } else {
             $errormessage = "L'Utente non è abilitato a modificare questo post!";
 
